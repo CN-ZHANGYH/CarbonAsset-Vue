@@ -1,10 +1,10 @@
 <template>
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
-      <el-form-item label="排放方式" prop="name">
+      <el-form-item label="分类名称" prop="name">
         <el-input
           v-model="queryParams.name"
-          placeholder="请输入排放的方式名称"
+          placeholder="请输入分类名称"
           clearable
           @keyup.enter="handleQuery"
         />
@@ -22,7 +22,7 @@
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['carbon:method:add']"
+          v-hasPermi="['souvenir:category:add']"
         >新增</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -32,7 +32,7 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['carbon:method:edit']"
+          v-hasPermi="['souvenir:category:edit']"
         >修改</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -42,7 +42,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['carbon:method:remove']"
+          v-hasPermi="['souvenir:category:remove']"
         >删除</el-button>
       </el-col>
       <el-col :span="1.5">
@@ -51,21 +51,21 @@
           plain
           icon="Download"
           @click="handleExport"
-          v-hasPermi="['carbon:method:export']"
+          v-hasPermi="['souvenir:category:export']"
         >导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
-    <el-table v-loading="loading" :data="methodList" @selection-change="handleSelectionChange">
+    <el-table v-loading="loading" :data="categoryList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="ID" align="center" prop="id" />
-      <el-table-column label="排放方式" align="center" prop="name" />
-      <el-table-column label="排放描述" align="center" prop="description" />
+      <el-table-column label="卡分类ID" align="center" prop="id" />
+      <el-table-column label="分类名称" align="center" prop="name" />
+      <el-table-column label="分类描述" align="center" prop="description" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['carbon:method:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['carbon:method:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['souvenir:category:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['souvenir:category:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -78,13 +78,13 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改排放方式的对话框 -->
+    <!-- 添加或修改纪念卡分类数据对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form ref="methodRef" :model="form" :rules="rules" label-width="80px">
-        <el-form-item label="排放的方式名称" prop="name">
-          <el-input v-model="form.name" placeholder="请输入排放的方式名称" />
+      <el-form ref="categoryRef" :model="form" :rules="rules" label-width="80px">
+        <el-form-item label="分类名称" prop="name">
+          <el-input v-model="form.name" placeholder="请输入分类名称" />
         </el-form-item>
-        <el-form-item label="排放方式的描述" prop="description">
+        <el-form-item label="分类描述" prop="description">
           <el-input v-model="form.description" type="textarea" placeholder="请输入内容" />
         </el-form-item>
       </el-form>
@@ -98,12 +98,12 @@
   </div>
 </template>
 
-<script setup name="Method">
-import { listMethod, getMethod, delMethod, addMethod, updateMethod } from "@/api/carbon/method";
+<script setup name="Category">
+import { listCategory, getCategory, delCategory, addCategory, updateCategory } from "@/api/souvenir/category";
 
 const { proxy } = getCurrentInstance();
 
-const methodList = ref([]);
+const categoryList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -122,16 +122,22 @@ const data = reactive({
     description: null
   },
   rules: {
+    name: [
+      { required: true, message: "分类名称不能为空", trigger: "blur" }
+    ],
+    description: [
+      { required: true, message: "分类描述不能为空", trigger: "blur" }
+    ]
   }
 });
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询排放方式的列表 */
+/** 查询纪念卡分类数据列表 */
 function getList() {
   loading.value = true;
-  listMethod(queryParams.value).then(response => {
-    methodList.value = response.rows;
+  listCategory(queryParams.value).then(response => {
+    categoryList.value = response.rows;
     total.value = response.total;
     loading.value = false;
   });
@@ -150,7 +156,7 @@ function reset() {
     name: null,
     description: null
   };
-  proxy.resetForm("methodRef");
+  proxy.resetForm("categoryRef");
 }
 
 /** 搜索按钮操作 */
@@ -176,32 +182,32 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = "添加排放方式的";
+  title.value = "添加纪念卡分类数据";
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const _id = row.id || ids.value
-  getMethod(_id).then(response => {
+  getCategory(_id).then(response => {
     form.value = response.data;
     open.value = true;
-    title.value = "修改排放方式的";
+    title.value = "修改纪念卡分类数据";
   });
 }
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs["methodRef"].validate(valid => {
+  proxy.$refs["categoryRef"].validate(valid => {
     if (valid) {
       if (form.value.id != null) {
-        updateMethod(form.value).then(response => {
+        updateCategory(form.value).then(response => {
           proxy.$modal.msgSuccess("修改成功");
           open.value = false;
           getList();
         });
       } else {
-        addMethod(form.value).then(response => {
+        addCategory(form.value).then(response => {
           proxy.$modal.msgSuccess("新增成功");
           open.value = false;
           getList();
@@ -214,8 +220,8 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除排放方式的编号为"' + _ids + '"的数据项？').then(function() {
-    return delMethod(_ids);
+  proxy.$modal.confirm('是否确认删除纪念卡分类数据编号为"' + _ids + '"的数据项？').then(function() {
+    return delCategory(_ids);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
@@ -224,9 +230,9 @@ function handleDelete(row) {
 
 /** 导出按钮操作 */
 function handleExport() {
-  proxy.download('carbon/method/export', {
+  proxy.download('souvenir/category/export', {
     ...queryParams.value
-  }, `method_${new Date().getTime()}.xlsx`)
+  }, `category_${new Date().getTime()}.xlsx`)
 }
 
 getList();

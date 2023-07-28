@@ -61,8 +61,7 @@ export function verifyQualification(data) {
     method: 'post',
     data: data
   })
-<<<<<<< HEAD
-=======
+
 }
 
 export function getIndustryTag(){
@@ -70,5 +69,4 @@ export function getIndustryTag(){
     url: '/industrys',
     method: 'GET'
   })
->>>>>>> 0c7f93b (更新项目)
 }

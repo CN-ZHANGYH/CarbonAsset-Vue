@@ -75,9 +75,9 @@
       <el-table-column label="所属行业" align="center" prop="qualificationIndustry" />
       <el-table-column label="联系人" align="center" prop="qualificationUserName" />
       <el-table-column label="邮箱" align="center" prop="qualificationUserEmail" />
-      <el-table-column label="资质认证" align="center" prop="qualificationUrl" >
+      <el-table-column label="资质认证" align="center" prop="qualificationUrl" width="100">
         <template #default="scope">
-          <img :src=scope.row.qualificationUrl alt="" style="width: 50px;height: 50px"/>
+          <image-preview :src="scope.row.qualificationUrl" :width="50" :height="50"/>
         </template>
       </el-table-column>
       <el-table-column label="上传时间" align="center" prop="qualificationUploadTime" width="100">
@@ -124,16 +124,13 @@
           <el-input v-model="form.qualificationAddress" placeholder="请输入注册地址" />
         </el-form-item>
         <el-form-item label="所属行业" prop="qualificationIndustry">
-<<<<<<< HEAD
-          <el-input v-model="form.qualificationIndustry" placeholder="请输入所属的行业" />
-=======
           <el-select-v2
               v-model="form.qualificationIndustry"
               :options="options"
               placeholder="请选择你的行业"
               style="width: 360px"
           ></el-select-v2>
->>>>>>> 0c7f93b (更新项目)
+
         </el-form-item>
         <el-form-item label="联系人姓名" prop="qualificationUserName">
           <el-input v-model="form.qualificationUserName" placeholder="请输入联系人姓名" />
@@ -252,18 +249,12 @@ import {
   delQualification,
   addQualification,
   updateQualification,
-<<<<<<< HEAD
-  uploadQualification, verifyQualification
+  getIndustryTag,
+  verifyQualification, uploadQualification
 } from "@/api/carbon/qualification";
-import Cookies from 'js-cookie'
-import {reactive, ref, watch} from "vue";
-=======
-  uploadQualification, verifyQualification, getIndustryTag
-} from "@/api/carbon/qualification";
-import Cookies from 'js-cookie'
-import {reactive, ref, toRefs, watch} from "vue";
->>>>>>> 0c7f93b (更新项目)
+import {getCurrentInstance, reactive, ref, toRefs, watch} from "vue";
 
+import Cookies from 'js-cookie'
 const { proxy } = getCurrentInstance();
 
 const qualificationList = ref([]);
@@ -300,19 +291,11 @@ const data = reactive({
     qualificationVerifiedRegulator: null,
     qualificationEmissionLimit: null
   },
-  rules: {
-<<<<<<< HEAD
-  }
-});
-
-const { queryParams, form, rules ,org} = toRefs(data);
-=======
-  },
+  rules: {},
   options: []
 });
 
 const { queryParams, form, rules ,org,options} = toRefs(data);
->>>>>>> 0c7f93b (更新项目)
 
 /** 查询企业资质信息列表 */
 function getList() {
@@ -483,11 +466,7 @@ function nextStep(){
       return proxy.$modal.msgError("当前没有权限")
     }
   }else if (stepNow.value == 2){
-<<<<<<< HEAD
-    if (form.value.isApprove != ""){
-=======
-    if (form.value.isApprove.trim() ){
->>>>>>> 0c7f93b (更新项目)
+    if (form.value.isApprove == ""){
       return  proxy.$modal.msgError("请选择是否通过审核");
     }
     verifyQualification(form.value).then(res => {
@@ -507,14 +486,11 @@ function auditForm(){
   stepNow.value = 1
 }
 
-<<<<<<< HEAD
-=======
 getIndustryTag().then(res => {
   options.value = res.data
 })
->>>>>>> 0c7f93b (更新项目)
 
-getList();
+getList()
 </script>
 
 <style scoped>
