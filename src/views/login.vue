@@ -162,11 +162,11 @@ getCookie();
   /* 背景图垂直、水平均居中 */
   background-position: center center;
   /* 背景图不平铺 */
-  background-repeat: no-repeat;
+  background-repeat: repeat-x;
   /* 当内容高度大于图片高度时，背景图像的位置相对于viewport固定 */
-  background-attachment: fixed;
-  /* 让背景图基于容器大小伸缩 */
-  background-size: cover;
+  background-size:100% 100%; // 把背景图像扩展至足够大，以使背景图像完全覆盖背景区域。背景图像的某些部分也许无法显示在背景定位区域中；
+  background-attachment:fixed;
+
 }
 .title {
   margin: 0px auto 30px auto;
