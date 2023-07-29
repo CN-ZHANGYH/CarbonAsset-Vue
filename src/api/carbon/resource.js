@@ -42,3 +42,19 @@ export function delResource(emissionId) {
     method: 'delete'
   })
 }
+
+export function getIsNotVerifyList(){
+  return request({
+    url: '/carbon/resource/isNotVerifyList',
+    method: 'GET'
+  })
+}
+
+
+export function verifyEnterpriseResource(data){
+  return request({
+    url: '/emissions/verify',
+    method: 'POST',
+    data: data
+  })
+}

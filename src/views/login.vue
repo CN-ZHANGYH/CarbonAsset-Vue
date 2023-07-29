@@ -1,7 +1,7 @@
 <template>
   <div class="login">
     <el-form ref="loginRef" :model="loginForm" :rules="loginRules" class="login-form">
-      <h3 class="title">数字碳链管理后台</h3>
+      <h3 class="title">登录</h3>
       <el-form-item prop="username">
         <el-input
             v-model="loginForm.username"
@@ -31,7 +31,7 @@
             size="large"
             auto-complete="off"
             placeholder="验证码"
-            style="width: 63%"
+            style="width: 59%"
             @keyup.enter="handleLogin"
         >
           <template #prefix><svg-icon icon-class="validCode" class="el-input__icon input-icon" /></template>
@@ -45,7 +45,7 @@
         <el-button
             :loading="loading"
             size="large"
-            type="primary"
+            type="success"
             style="width:100%;"
             @click.prevent="handleLogin"
         >
@@ -59,7 +59,7 @@
     </el-form>
     <!--  底部  -->
     <div class="el-login-footer">
-      <span>Copyright © 2023-2024 SZTL.vip All Rights Reserved.</span>
+      <span>Copyright © 2023-2024 SZPU-SZTL All Rights Reserved.</span>
     </div>
   </div>
 </template>
@@ -158,19 +158,34 @@ getCookie();
   justify-content: center;
   align-items: center;
   height: 100%;
-  background-image: url("../assets/images/login-background.jpg");
+  background-image: url("../assets/images/background.png");
+  /* 背景图垂直、水平均居中 */
+  background-position: center center;
+  /* 背景图不平铺 */
+  background-repeat: no-repeat;
+  /* 当内容高度大于图片高度时，背景图像的位置相对于viewport固定 */
+  background-attachment: fixed;
+  /* 让背景图基于容器大小伸缩 */
   background-size: cover;
 }
 .title {
   margin: 0px auto 30px auto;
   text-align: center;
-  color: #707070;
+  font-weight: bold;
+  color: #020202;
 }
 
+.login-form:hover{
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
 .login-form {
-  border-radius: 6px;
-  background: #ffffff;
-  width: 400px;
+  position: absolute;
+  left: 6%;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 1);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  width: 350px;
   padding: 25px 25px 5px 25px;
   .el-input {
     height: 40px;
@@ -205,7 +220,7 @@ getCookie();
   bottom: 0;
   width: 100%;
   text-align: center;
-  color: #fff;
+  color: #020202;
   font-family: Arial;
   font-size: 12px;
   letter-spacing: 1px;
