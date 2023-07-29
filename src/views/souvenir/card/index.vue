@@ -85,6 +85,7 @@
         </template>
       </el-table-column>
       <el-table-column label="分类" align="center" prop="category" />
+      <el-table-column label="积分" align="center" prop="credit" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
           <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['souvenir:card:edit']">修改</el-button>
@@ -119,6 +120,9 @@
         </el-form-item>
         <el-form-item label="星数等级" prop="level">
           <el-input v-model="form.level" placeholder="请输入星数等级" />
+        </el-form-item>
+        <el-form-item label="积分数量" prop="credit">
+          <el-input v-model="form.credit" placeholder="请输入积分数量" />
         </el-form-item>
         <el-form-item label="图标" prop="url">
           <el-upload class="avatar-uploader"
@@ -184,6 +188,9 @@ const data = reactive({
     ],
     category: [
       { required: true, message: "分类不能为空", trigger: "blur" }
+    ],
+    credit: [
+      { required: true,message: "积分不能为空",trigger: "blur"}
     ]
   }
 });
