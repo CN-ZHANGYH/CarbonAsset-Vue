@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-
+import * as echarts from "echarts";
 import Cookies from 'js-cookie'
 
 import ElementPlus from 'element-plus'
@@ -25,7 +25,6 @@ import './permission' // permission control
 
 import { useDict } from '@/utils/dict'
 import { parseTime, resetForm, addDateRange, handleTree, selectDictLabel, selectDictLabels } from '@/utils/ruoyi'
-
 // 分页组件
 import Pagination from '@/components/Pagination'
 // 自定义表格工具组件
@@ -54,6 +53,7 @@ app.config.globalProperties.handleTree = handleTree
 app.config.globalProperties.addDateRange = addDateRange
 app.config.globalProperties.selectDictLabel = selectDictLabel
 app.config.globalProperties.selectDictLabels = selectDictLabels
+app.config.globalProperties.$echarts = echarts;
 
 // 全局组件挂载
 app.component('DictTag', DictTag)
@@ -70,7 +70,6 @@ app.use(store)
 app.use(plugins)
 app.use(elementIcons)
 app.component('svg-icon', SvgIcon)
-
 directive(app)
 
 // 使用element-plus 并且设置全局的大小

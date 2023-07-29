@@ -81,10 +81,16 @@
       <el-table-column label="排放的量" align="center" prop="emissions" />
       <el-table-column label="排放的资源描述" align="center" prop="description" />
       <el-table-column label="排放的方式" align="center" prop="emissionWay" />
-      <el-table-column label="是否批准排放" align="center" prop="isApprove" />
+      <el-table-column label="是否批准排放" align="center" prop="isApprove" >
+        <template #default="scope">
+          <el-tag type="success" v-if="scope.row.isApprove == 1">审批通过</el-tag>
+          <el-tag type="danger" v-if="scope.row.isApprove == 0">未审批</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="排放时间" align="center" prop="emissionTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.emissionTime, '{y}-{m}-{d}') }}</span>
+          <span v-if="scope.row.emissionTime == null">还未排放</span>
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
@@ -144,7 +150,9 @@
 </template>
 
 <script setup name="Resource">
-import { listResource, getResource, delResource, addResource, updateResource } from "@/api/carbon/resource";
+import { listResource, delResource, addResource, updateResource } from "@/api/carbon/resource";
+import {getCurrentInstance, ref} from "vue";
+import {parseTime} from "../../../utils/ruoyi";
 
 const { proxy } = getCurrentInstance();
 
@@ -236,13 +244,15 @@ function handleAdd() {
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
-  reset();
-  const _emissionId = row.emissionId || ids.value
-  getResource(_emissionId).then(response => {
-    form.value = response.data;
-    open.value = true;
-    title.value = "修改企业排放资源";
-  });
+
+  // reset();
+  // const _emissionId = row.emissionId || ids.value
+  // getResource(_emissionId).then(response => {
+  //   form.value = response.data;
+  //   open.value = true;
+  //   title.value = "修改企业排放资源";
+  // });
+
 }
 
 /** 提交按钮 */
