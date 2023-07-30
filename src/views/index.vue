@@ -4,50 +4,105 @@
       <el-col :span="8">
         <el-card shadow="hover">
           <div class="container">
-            <div id="myChart" :style="{ width: '50%', height: '280px' }"></div>
-            <div style="margin-right: 30px;margin-top: 30px">
-              <el-progress type="dashboard" :percentage="100" width="200" stroke-width="20">
+            <div ref="online" id="online" :style="{ width: '50%', height: '300px' }"></div>
+            <div style="margin-right: 30px;margin-top: 10px">
+              <el-progress type="dashboard" :percentage="totalOnline" width="200" stroke-width="20">
                 <template #default="{ percentage }">
-                  <span class="percentage-value">{{ percentage }}%</span>
-                  <span class="percentage-label">全球环保率</span>
+                  <span class="percentage-value">{{ percentage }}</span>
+                  <span class="percentage-label">平台在线人数</span>
                 </template>
               </el-progress>
             </div>
           </div>
-          <div class="container">
-            <span style="margin-left: 19%;font-weight: 1000">在线人数</span>
-            <span style="margin-right: 18%;font-weight: 1000">全球环保</span>
-          </div>
         </el-card>
       </el-col>
       <el-col :span="8">
         <el-card shadow="hover">
-          <div id="main" :style="{ width: '90%', height: '300px' }"></div>
+          <div ref="footprint" id="footprint" :style="{ width: '100%', height: '300px' }"></div>
         </el-card>
       </el-col>
       <el-col :span="8">
         <el-card shadow="hover">
-          <div id="meigui" :style="{ width: '90%', height: '300px' }"></div>
+          <div ref="resourceType" id="resourceType" :style="{ width: '90%', height: '300px' }"></div>
         </el-card>
       </el-col>
     </el-row>
 
 
-    <el-card shadow="hover" style="height: 500px;margin-top: 20px">
+    <el-card shadow="hover" style="height: 520px;margin-top: 20px">
       <el-row :gutter="20">
         <el-col :span="13">
           <el-table :data="tableData" stripe style="width: 100%">
-            <el-table-column prop="date" label="Date" width="180" />
-            <el-table-column prop="name" label="Name" width="180" />
-            <el-table-column prop="address" label="Address" />
-            <el-table-column prop="address" label="Address">
+            <el-table-column prop="transactionId" label="ID" width="50" />
+            <el-table-column prop="buyAddress" label="买家地址" width="200">
+            <template #default="scope">
+              <el-tag type="success">{{truncatedString(scope.row.buyAddress)}}</el-tag>
+            </template>
+            </el-table-column>
+            <el-table-column prop="sellerAddress" label="卖家地址" width="200">
+            <template #default="scope">
+              <el-tag  type="success"
+              >{{truncatedString(scope.row.sellerAddress)}}</el-tag>
+            </template>
+            </el-table-column>
+            <el-table-column prop="txHash" label="交易哈希" width="200">
               <template #default="scope">
-                <el-tag>交易完成</el-tag>
+                <el-popover
+                    placement="top-start"
+                    title="交易HASH"
+                    :width="400"
+                    trigger="hover"
+                    :content="scope.row.txHash"
+                >
+                  <template #reference>
+                    <el-tag
+                        type="success"
+                        class="mx-1"
+                        effect="dark"
+                    >{{truncatedString(scope.row.txHash)}}</el-tag>
+                  </template>
+                </el-popover>
+              </template>
+            </el-table-column>
+            <el-table-column prop="transactionQuantity" label="交易数量"  width="100"/>
+            <el-table-column prop="#" label="状态">
+              <template #default="scope">
+                <el-check-tag :checked="true">交易完成</el-check-tag>
               </template>
             </el-table-column>
           </el-table>
         </el-col>
-        <el-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+        <el-col :span="6" style="margin-left: 40px">
+          <el-tabs v-model="activeName" class="demo-tabs">
+            <el-tab-pane label="介绍" name="first">
+              <el-carousel :interval="5000" arrow="always" >
+                <el-carousel-item v-for="(item,index) in items" :key="item">
+                  <img :src="item" alt="" style="height: 100%;width: 100%"/>
+                </el-carousel-item>
+              </el-carousel>
+            </el-tab-pane>
+            <el-tab-pane label="平台使用流程" name="second">
+              <el-timeline >
+                <el-timeline-item timestamp="2023/4/12" placement="top" type="primary" color="#0bbd87">
+                  <el-card>
+                    <p>监管机构登录平台</p>
+                  </el-card>
+                </el-timeline-item>
+                <el-timeline-item timestamp="2023/4/12" placement="top" type="primary" color="#0bbd87">
+                  <el-card>
+                    <p>审批企业的资质认证</p>
+                  </el-card>
+                </el-timeline-item>
+                <el-timeline-item timestamp="2023/4/12" placement="top" type="primary" color="#0bbd87">
+                  <el-card>
+                    <p>审批企业的碳排放申请</p>
+                  </el-card>
+                </el-timeline-item>
+              </el-timeline>
+            </el-tab-pane>
+            <el-tab-pane label="Role" name="third">Role</el-tab-pane>
+          </el-tabs>
+        </el-col>
       </el-row>
 
     </el-card>
@@ -56,263 +111,26 @@
 
 <script setup name="Index">
 import * as echarts from 'echarts'
-import {onMounted, reactive, ref, watch} from "vue";
+import {computed, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRefs, watch} from "vue";
+import {getFootPrintList, getNewTxList, getResourceTypeList} from "@/api/carbon/data";
+import {list as initData} from "@/api/monitor/online";
+
+const activeName = ref('first')
+const totalOnline = ref(0)
+const resourcedata = ref([])
+const footdate = ref([])
 
 
-var ROOT_PATH = 'https://echarts.apache.org/examples';
-
-const version = ref('3.8.6')
-
-function goTarget(url) {
-  window.open(url, '__blank')
-}
-
-const mainState = reactive(
-    {
-      option: {
-        color: ['#80FFA5', '#00DDFF', '#37A2FF', '#FF0087', '#FFBF00'],
-        title: {
-          text: '测试'
-        },
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            type: 'cross',
-            label: {
-              backgroundColor: '#6a7985'
-            }
-          }
-        },
-        legend: {
-          data: ['Line 1', 'Line 2', 'Line 3', 'Line 4', 'Line 5']
-        },
-        toolbox: {
-          feature: {
-            saveAsImage: {}
-          }
-        },
-        grid: {
-          left: '3%',
-          right: '4%',
-          bottom: '3%',
-          containLabel: true
-        },
-        xAxis: [
-          {
-            type: 'category',
-            boundaryGap: false,
-            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-          }
-        ],
-        yAxis: [
-          {
-            type: 'value'
-          }
-        ],
-        series: [
-          {
-            name: 'Line 1',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 0
-            },
-            showSymbol: false,
-            areaStyle: {
-              opacity: 0.8,
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                {
-                  offset: 0,
-                  color: 'rgb(128, 255, 165)'
-                },
-                {
-                  offset: 1,
-                  color: 'rgb(1, 191, 236)'
-                }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [140, 232, 101, 264, 90, 340, 250]
-          },
-          {
-            name: 'Line 2',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 0
-            },
-            showSymbol: false,
-            areaStyle: {
-              opacity: 0.8,
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                {
-                  offset: 0,
-                  color: 'rgb(0, 221, 255)'
-                },
-                {
-                  offset: 1,
-                  color: 'rgb(77, 119, 255)'
-                }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [120, 282, 111, 234, 220, 340, 310]
-          },
-          {
-            name: 'Line 3',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 0
-            },
-            showSymbol: false,
-            areaStyle: {
-              opacity: 0.8,
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                {
-                  offset: 0,
-                  color: 'rgb(55, 162, 255)'
-                },
-                {
-                  offset: 1,
-                  color: 'rgb(116, 21, 219)'
-                }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [320, 132, 201, 334, 190, 130, 220]
-          },
-          {
-            name: 'Line 4',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 0
-            },
-            showSymbol: false,
-            areaStyle: {
-              opacity: 0.8,
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                {
-                  offset: 0,
-                  color: 'rgb(255, 0, 135)'
-                },
-                {
-                  offset: 1,
-                  color: 'rgb(135, 0, 157)'
-                }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [220, 402, 231, 134, 190, 230, 120]
-          },
-          {
-            name: 'Line 5',
-            type: 'line',
-            stack: 'Total',
-            smooth: true,
-            lineStyle: {
-              width: 0
-            },
-            showSymbol: false,
-            label: {
-              show: true,
-              position: 'top'
-            },
-            areaStyle: {
-              opacity: 0.8,
-              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                {
-                  offset: 0,
-                  color: 'rgb(255, 191, 0)'
-                },
-                {
-                  offset: 1,
-                  color: 'rgb(224, 62, 76)'
-                }
-              ])
-            },
-            emphasis: {
-              focus: 'series'
-            },
-            data: [220, 302, 181, 234, 210, 290, 150]
-          }
-        ]
-      }
-    }
-)
-
-const state = reactive({
+const items = reactive([
+    'https://blog-1304715799.cos.ap-nanjing.myqcloud.com/imgs/202307302237603.png',
+    'https://blog-1304715799.cos.ap-nanjing.myqcloud.com/imgs/202307302237603.png',
+    'https://blog-1304715799.cos.ap-nanjing.myqcloud.com/imgs/202307302237603.png'
+])
+const resourceState = reactive({
   option: {
-    series: [
-      {
-        type: 'gauge',
-        progress: {
-          show: true,
-          width: 20
-        },
-        axisLine: {
-          lineStyle: {
-            width: 30
-          }
-        },
-        axisTick: {
-          show: false
-        },
-        splitLine: {
-          length: 7,
-          lineStyle: {
-            width: 2,
-            color: '#999'
-          }
-        },
-        axisLabel: {
-          distance: 25,
-          color: '#999',
-          fontSize: 13
-        },
-        anchor: {
-          show: true,
-          showAbove: true,
-          size: 15,
-          itemStyle: {
-            borderWidth: 10
-          }
-        },
-        title: {
-          show: true,
-
-        },
-        detail: {
-          valueAnimation: true,
-          fontSize: 30,
-          offsetCenter: [0, '70%']
-        },
-        data: [
-          {
-            value: 70
-          }
-        ]
-      }
-    ]
-  }
-})
-
-
-const meiguiState = reactive({
-  option: {
+    title: {
+      text: '排放资源占比'
+    },
     legend: {
       top: 'bottom'
     },
@@ -335,88 +153,290 @@ const meiguiState = reactive({
         itemStyle: {
           borderRadius: 8
         },
+        data: resourcedata.value
+      }
+    ]
+  }
+})
+const footprintState = reactive({footOption: {
+    color: ['#80FFA5', '#00DDFF', '#37A2FF', '#FF0087', '#FFBF00'],
+    title: {
+      text: '碳足迹',
+    },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: {
+        type: 'cross',
+        label: {
+          backgroundColor: '#6a7985'
+        }
+      }
+    },
+    legend: {
+      left: '15%',
+      data: ['交易数量', '碳排放', '企业认证', '资产出售']
+    },
+    toolbox: {
+      feature: {
+        saveAsImage: {}
+      }
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '3%',
+      containLabel: true
+    },
+    xAxis: [
+      {
+        type: 'category',
+        boundaryGap: false,
+        data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+      }
+    ],
+    yAxis: [
+      {
+        type: 'value'
+      }
+    ],
+    series: [
+      {
+        name: '交易数量',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 0
+        },
+        showSymbol: false,
+        areaStyle: {
+          opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgb(128, 255, 165)'
+            },
+            {
+              offset: 1,
+              color: 'rgb(1, 191, 236)'
+            }
+          ])
+        },
+        emphasis: {
+          focus: 'series'
+        },
+        data: []
+      },
+      {
+        name: '碳排放',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 0
+        },
+        showSymbol: false,
+        areaStyle: {
+          opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgb(0, 221, 255)'
+            },
+            {
+              offset: 1,
+              color: 'rgb(77, 119, 255)'
+            }
+          ])
+        },
+        emphasis: {
+          focus: 'series'
+        },
+        data: []
+      },
+      {
+        name: '企业认证',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 0
+        },
+        showSymbol: false,
+        areaStyle: {
+          opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgb(55, 162, 255)'
+            },
+            {
+              offset: 1,
+              color: 'rgb(116, 21, 219)'
+            }
+          ])
+        },
+        emphasis: {
+          focus: 'series'
+        },
+        data: []
+      },
+      {
+        name: '资产出售',
+        type: 'line',
+        stack: 'Total',
+        smooth: true,
+        lineStyle: {
+          width: 0
+        },
+        showSymbol: false,
+        areaStyle: {
+          opacity: 0.8,
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            {
+              offset: 0,
+              color: 'rgb(255, 0, 135)'
+            },
+            {
+              offset: 1,
+              color: 'rgb(135, 0, 157)'
+            }
+          ])
+        },
+        emphasis: {
+          focus: 'series'
+        },
+        data: []
+      }
+    ]
+  }})
+const onlineState = reactive({
+  onlineOption: {
+    title: {
+      text: '在线人数',
+    },
+    series: [
+      {
+        type: 'gauge',
+        progress: {
+          show: true,
+          width: 20
+        },
+        axisLine: {
+          lineStyle: {
+            width: 20
+          }
+        },
+        axisTick: {
+          show: false
+        },
+        splitLine: {
+          length: 7,
+          lineStyle: {
+            width: 2,
+            color: '#999'
+          }
+        },
+        axisLabel: {
+          distance: 20,
+          color: '#999',
+          fontSize: 12
+        },
+        anchor: {
+          show: true,
+          showAbove: true,
+          size: 15,
+          itemStyle: {
+            borderWidth: 10
+          }
+        },
+        title: {
+          show: true,
+
+        },
+        detail: {
+          valueAnimation: true,
+          fontSize: 30,
+          offsetCenter: [0, '70%']
+        },
         data: [
-          { value: 40, name: 'rose 1' },
-          { value: 38, name: 'rose 2' },
-          { value: 32, name: 'rose 3' },
-          { value: 30, name: 'rose 4' },
-          { value: 28, name: 'rose 5' },
-          { value: 26, name: 'rose 6' }
+          {
+            value: 0
+          }
         ]
       }
     ]
   }
 })
 
-const initeCharts = () => {
-  let myChart = echarts.init(document.getElementById('myChart'))
-  let mainChart = echarts.init(document.getElementById('main'))
-  let meiguiChart = echarts.init(document.getElementById('meigui'))
+const {option} = toRefs(resourceState)
+const {footOption} = toRefs(footprintState)
+const {onlineOption} = toRefs(onlineState)
+const tableData = ref([])
 
-  // 绘制图表
-  myChart.setOption(state.option)
-  mainChart.setOption(mainState.option)
-  meiguiChart.setOption(meiguiState.option)
+const resourceType = ref(null)
+const timer = ref([])
+
+const init = () => {
+  // 初始化人数
+  initData().then(response => {
+    totalOnline.value = response.total;
+    onlineOption.value.series[0].data[0].value = totalOnline.value
+    var onlineChart = echarts.init(document.getElementById("online"))
+    onlineChart.setOption(onlineOption.value)
+  });
+
+  // 初始化碳足迹
+  getFootPrintList().then(res => {
+    footdate.value = res.data
+    footOption.value.series[0].data = footdate.value[0]
+    footOption.value.series[1].data = footdate.value[1]
+    footOption.value.series[2].data = footdate.value[2]
+    footOption.value.series[3].data = footdate.value[3]
+
+    var footChart = echarts.init(document.getElementById("footprint"))
+    footChart.setOption(footOption.value)
+  })
+
+  // 初始化饼状图
+  getResourceTypeList().then(res => {
+    resourcedata.value = res.data
+    option.value.series[0].data = resourcedata.value
+
+    var resourceChart = echarts.init(document.getElementById("resourceType"))
+    // 指定图表的配置项
+    resourceChart.setOption(option.value)
+  })
+
+
+  // 获取最新的10笔交易
+  getNewTxList().then(res => {
+    console.log(res.data)
+    tableData.value = res.data
+  })
 }
 onMounted(() => {
-  initeCharts()
+  init()
   fetchTableData()
-  setInterval(fetchTableData, 3000); // 每隔3秒打乱一次数据
+  timer.value.push(setInterval(fetchTableData, 3000));
+  timer.value.push(setInterval(init,1000))
+})
 
+onUnmounted(() => {
+  for (const timerElement of timer.value) {
+    clearInterval(timerElement)
+  }
+  timer.value=[]
 })
 
 
-
-const tableData = ref([
-  {
-    date: '2016-05-03',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-02',
-    name: 'Tom',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-04',
-    name: 'Jack',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-01',
-    name: 'Jeene',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-01',
-    name: 'LIWI',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-01',
-    name: 'XIEUYE',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-01',
-    name: 'ASDAD',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-  {
-    date: '2016-05-01',
-    name: 'ASDS',
-    address: 'No. 189, Grove St, Los Angeles',
-  },
-])
-
-
-const shuffledData = ref([]);
 const fetchTableData = () => {
   tableData.value.sort(() => Math.random() - 0.5);
-  console.log(shuffledData.value)
 };
 
+function truncatedString(val){
+  return val.substring(0, 20) + '...';
+}
 
 
 </script>
@@ -437,6 +457,19 @@ const fetchTableData = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.demo-tabs > .el-tabs__content {
+  padding: 32px;
+  color: #6b778c;
+  font-size: 40px;
+  font-weight: 1000;
+}
+
+
+.demo-tabs {
+  width: 650px;
+  height: 100%;
 }
 </style>
 
