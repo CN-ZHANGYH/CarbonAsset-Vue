@@ -5,11 +5,11 @@
         <el-card shadow="hover">
           <div class="container">
             <div ref="online" id="online" :style="{ width: '50%', height: '300px' }"></div>
-            <div style="margin-right: 30px;margin-top: 30px">
+            <div style="margin-right: 30px;margin-top: 10px">
               <el-progress type="dashboard" :percentage="totalOnline" width="200" stroke-width="20">
                 <template #default="{ percentage }">
                   <span class="percentage-value">{{ percentage }}</span>
-                  <span class="percentage-label">全球环保率</span>
+                  <span class="percentage-label">平台在线人数</span>
                 </template>
               </el-progress>
             </div>
@@ -29,21 +29,80 @@
     </el-row>
 
 
-    <el-card shadow="hover" style="height: 500px;margin-top: 20px">
+    <el-card shadow="hover" style="height: 520px;margin-top: 20px">
       <el-row :gutter="20">
         <el-col :span="13">
           <el-table :data="tableData" stripe style="width: 100%">
-            <el-table-column prop="date" label="Date" width="180" />
-            <el-table-column prop="name" label="Name" width="180" />
-            <el-table-column prop="address" label="Address" />
-            <el-table-column prop="address" label="Address">
+            <el-table-column prop="transactionId" label="ID" width="50" />
+            <el-table-column prop="buyAddress" label="买家地址" width="200">
+            <template #default="scope">
+              <el-tag type="success">{{truncatedString(scope.row.buyAddress)}}</el-tag>
+            </template>
+            </el-table-column>
+            <el-table-column prop="sellerAddress" label="卖家地址" width="200">
+            <template #default="scope">
+              <el-tag  type="success"
+              >{{truncatedString(scope.row.sellerAddress)}}</el-tag>
+            </template>
+            </el-table-column>
+            <el-table-column prop="txHash" label="交易哈希" width="200">
               <template #default="scope">
-                <el-tag>交易完成</el-tag>
+                <el-popover
+                    placement="top-start"
+                    title="交易HASH"
+                    :width="400"
+                    trigger="hover"
+                    :content="scope.row.txHash"
+                >
+                  <template #reference>
+                    <el-tag
+                        type="success"
+                        class="mx-1"
+                        effect="dark"
+                    >{{truncatedString(scope.row.txHash)}}</el-tag>
+                  </template>
+                </el-popover>
+              </template>
+            </el-table-column>
+            <el-table-column prop="transactionQuantity" label="交易数量"  width="100"/>
+            <el-table-column prop="#" label="状态">
+              <template #default="scope">
+                <el-check-tag :checked="true">交易完成</el-check-tag>
               </template>
             </el-table-column>
           </el-table>
         </el-col>
-        <el-col :span="6"><div class="grid-content ep-bg-purple" /></el-col>
+        <el-col :span="6" style="margin-left: 40px">
+          <el-tabs v-model="activeName" class="demo-tabs">
+            <el-tab-pane label="介绍" name="first">
+              <el-carousel :interval="5000" arrow="always" >
+                <el-carousel-item v-for="(item,index) in items" :key="item">
+                  <img :src="item" alt="" style="height: 100%;width: 100%"/>
+                </el-carousel-item>
+              </el-carousel>
+            </el-tab-pane>
+            <el-tab-pane label="平台使用流程" name="second">
+              <el-timeline >
+                <el-timeline-item timestamp="2023/4/12" placement="top" type="primary" color="#0bbd87">
+                  <el-card>
+                    <p>监管机构登录平台</p>
+                  </el-card>
+                </el-timeline-item>
+                <el-timeline-item timestamp="2023/4/12" placement="top" type="primary" color="#0bbd87">
+                  <el-card>
+                    <p>审批企业的资质认证</p>
+                  </el-card>
+                </el-timeline-item>
+                <el-timeline-item timestamp="2023/4/12" placement="top" type="primary" color="#0bbd87">
+                  <el-card>
+                    <p>审批企业的碳排放申请</p>
+                  </el-card>
+                </el-timeline-item>
+              </el-timeline>
+            </el-tab-pane>
+            <el-tab-pane label="Role" name="third">Role</el-tab-pane>
+          </el-tabs>
+        </el-col>
       </el-row>
 
     </el-card>
@@ -52,16 +111,26 @@
 
 <script setup name="Index">
 import * as echarts from 'echarts'
-import {nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRefs, watch} from "vue";
+import {computed, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRefs, watch} from "vue";
 import {getFootPrintList, getNewTxList, getResourceTypeList} from "@/api/carbon/data";
 import {list as initData} from "@/api/monitor/online";
 
-
+const activeName = ref('first')
 const totalOnline = ref(0)
 const resourcedata = ref([])
 const footdate = ref([])
+
+
+const items = reactive([
+    'https://blog-1304715799.cos.ap-nanjing.myqcloud.com/imgs/202307302237603.png',
+    'https://blog-1304715799.cos.ap-nanjing.myqcloud.com/imgs/202307302237603.png',
+    'https://blog-1304715799.cos.ap-nanjing.myqcloud.com/imgs/202307302237603.png'
+])
 const resourceState = reactive({
   option: {
+    title: {
+      text: '排放资源占比'
+    },
     legend: {
       top: 'bottom'
     },
@@ -365,6 +434,9 @@ const fetchTableData = () => {
   tableData.value.sort(() => Math.random() - 0.5);
 };
 
+function truncatedString(val){
+  return val.substring(0, 20) + '...';
+}
 
 
 </script>
@@ -385,6 +457,19 @@ const fetchTableData = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.demo-tabs > .el-tabs__content {
+  padding: 32px;
+  color: #6b778c;
+  font-size: 40px;
+  font-weight: 1000;
+}
+
+
+.demo-tabs {
+  width: 650px;
+  height: 100%;
 }
 </style>
 
