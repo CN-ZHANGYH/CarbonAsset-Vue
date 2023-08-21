@@ -208,12 +208,13 @@
           <el-form-item label="当前所属机构">
             <el-input v-model="org.regulatorAddress"  disabled/>
           </el-form-item>
+          <el-form-item label="审批状态">
+            <el-radio-group v-model="form.isApprove" size="large">
+              <el-radio-button label="false" key="false">不通过</el-radio-button>
+              <el-radio-button label="true" key="true">通过</el-radio-button>
+            </el-radio-group>
+          </el-form-item>
         </el-form>
-
-        <el-radio-group v-model="form.isApprove" size="large">
-          <el-radio-button label="false">不通过</el-radio-button>
-          <el-radio-button label="true" >通过</el-radio-button>
-        </el-radio-group>
       </div>
 
       <div v-if="stepNow == 3" >
@@ -466,7 +467,7 @@ function nextStep(){
       return proxy.$modal.msgError("当前没有权限")
     }
   }else if (stepNow.value == 2){
-    if (form.value.isApprove == ""){
+    if (form.value.isApprove == undefined){
       return  proxy.$modal.msgError("请选择是否通过审核");
     }
     verifyQualification(form.value).then(res => {

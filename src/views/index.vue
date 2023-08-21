@@ -111,7 +111,7 @@
 
 <script setup name="Index">
 import * as echarts from 'echarts'
-import {computed, nextTick, onBeforeMount, onMounted, onUnmounted, reactive, ref, toRefs, watch} from "vue";
+import { onMounted, onUnmounted, reactive, ref, toRefs} from "vue";
 import {getFootPrintList, getNewTxList, getResourceTypeList} from "@/api/carbon/data";
 import {list as initData} from "@/api/monitor/online";
 
@@ -411,7 +411,6 @@ const init = () => {
 
   // 获取最新的10笔交易
   getNewTxList().then(res => {
-    console.log(res.data)
     tableData.value = res.data
   })
 }
