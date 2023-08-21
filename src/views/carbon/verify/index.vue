@@ -107,16 +107,12 @@
 
 <script setup name="Resource">
 import {
-  listResource,
   delResource,
-  addResource,
-  updateResource,
   getIsNotVerifyList,
-  getResource, verifyEnterpriseResource
+  getResource, listResource, verifyEnterpriseResource
 } from "@/api/carbon/resource";
 import {getCurrentInstance, reactive, ref, toRefs} from "vue";
 import {Edit, Picture, UploadFilled} from "@element-plus/icons-vue";
-import {parseTime} from "../../../utils/ruoyi";
 import Cookies from "js-cookie";
 
 const { proxy } = getCurrentInstance();
@@ -165,7 +161,11 @@ const { queryParams, form, rules,verifyData } = toRefs(data);
 /** 查询企业排放资源列表 */
 function getList() {
   loading.value = true;
-  getIsNotVerifyList(queryParams.value).then(response => {
+  getIsNotVerifyList({
+    page: queryParams.value.page,
+    pageSize: queryParams.value.pageSize
+  }).then(response => {
+    console.log(response)
     resourceList.value = response.rows;
     total.value = response.total;
     loading.value = false;
@@ -256,18 +256,9 @@ function submitForm() {
             resultValue.value = 3
           }
         })
-        //
-        // updateResource(form.value).then(response => {
-        //   proxy.$modal.msgSuccess("修改成功");
-        //   open.value = false;
-        //   getList();
-        // });
+
       } else {
-        // addResource(form.value).then(response => {
-        //   proxy.$modal.msgSuccess("新增成功");
-        //   open.value = false;
-        //   getList();
-        // });
+
       }
     }
   });
@@ -282,13 +273,6 @@ function handleDelete(row) {
     getList();
     proxy.$modal.msgSuccess("删除成功");
   }).catch(() => {});
-}
-
-/** 导出按钮操作 */
-function handleExport() {
-  proxy.download('carbon/resource/export', {
-    ...queryParams.value
-  }, `resource_${new Date().getTime()}.xlsx`)
 }
 
 getList();

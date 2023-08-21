@@ -43,10 +43,11 @@ export function delResource(emissionId) {
   })
 }
 
-export function getIsNotVerifyList(){
+export function getIsNotVerifyList(query){
   return request({
     url: '/carbon/resource/isNotVerifyList',
-    method: 'GET'
+    method: 'get',
+    params: query
   })
 }
 
