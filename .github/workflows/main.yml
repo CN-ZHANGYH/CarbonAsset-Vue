@@ -1,0 +1,32 @@
+name: CI-SZTL
+on: 
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Nodejs
+        uses: actions/setup-node@v2.5.1
+        with:
+          node-version: "14.x"
+      - name: Install deps
+        run: npm install
+      - name: build app
+        run: npm run build 
+      - name: copy dist file with scp
+        uses: cross-the-world/ssh-scp-ssh-pipelines@latest
+        with: 
+          host: ${{ secrets.REMOTE_HOST }}
+          user: ${{ secrets.REMOTE_USER }}
+          pass: ${{ secrets.REMOTE_PASSWORD }}
+          scp: |
+            ./dist/* => /var/www/carbon-vue
+          last_ssh: |
+            nginx -t
+            nginx -s reload
