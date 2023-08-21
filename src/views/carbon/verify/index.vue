@@ -107,16 +107,12 @@
 
 <script setup name="Resource">
 import {
-  listResource,
   delResource,
-  addResource,
-  updateResource,
   getIsNotVerifyList,
-  getResource, verifyEnterpriseResource
+  getResource, listResource, verifyEnterpriseResource
 } from "@/api/carbon/resource";
 import {getCurrentInstance, reactive, ref, toRefs} from "vue";
 import {Edit, Picture, UploadFilled} from "@element-plus/icons-vue";
-import {parseTime} from "../../../utils/ruoyi";
 import Cookies from "js-cookie";
 
 const { proxy } = getCurrentInstance();
@@ -165,7 +161,10 @@ const { queryParams, form, rules,verifyData } = toRefs(data);
 /** 查询企业排放资源列表 */
 function getList() {
   loading.value = true;
-  getIsNotVerifyList(queryParams.value).then(response => {
+  getIsNotVerifyList({
+    page: queryParams.value.page,
+    pageSize: queryParams.value.pageSize
+  }).then(response => {
     console.log(response)
     resourceList.value = response.rows;
     total.value = response.total;
