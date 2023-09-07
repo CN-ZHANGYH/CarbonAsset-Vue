@@ -26,7 +26,7 @@ jobs:
           user: ${{ secrets.REMOTE_USER }}
           pass: ${{ secrets.REMOTE_PASSWORD }}
           scp: |
-            ./dist/* => /var/www/carbon-vue
+            ./dist/* => /root/SZTL-Docker/admin-vue/dist/
           last_ssh: |
-            nginx -t
-            nginx -s reload
+            cd /root/SZTL-Docker/ && docker-compose -f docker-compose-web.yaml up -d
+            cd /root/SZTL-Docker/ && docker-compose -f docker-compose-web.yaml restart
